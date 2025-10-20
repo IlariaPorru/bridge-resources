@@ -1,0 +1,8 @@
+audio_filename,M_picture,F_picture
+audio/int_exp/stim001__temporal.mp3.mp3, images/int_exp/M1.png, images/int_exp/F1.png
+audio/int_exp/stim007_o_temporal.mp3.mp3, images/int_exp/M2.png, images/int_exp/F2.png
+audio/int_exp/stim013_kendisi_temporal.mp3.mp3, images/int_exp/M3.png, images/int_exp/F3.png
+audio/int_exp/stim019__subordinate.mp3.mp3, images/int_exp/M4.png, images/int_exp/F4.png
+audio/int_exp/stim025_o_subordinate.mp3.mp3, images/int_exp/M5.png, images/int_exp/F5.png
+audio/int_exp/stim031_kendisi_subordinate.mp3.mp3, images/int_exp/M1.png, images/int_exp/F1.png
+audio/int_filler/interpretation_filler038.mp3.mp3, images/int_fillers/pencere.png, images/int_fillers/painting.png
