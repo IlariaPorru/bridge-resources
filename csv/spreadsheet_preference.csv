@@ -1,0 +1,4 @@
+pair_id,image,audio_A,audio_B,group,use
+coffee_A,images/practice/morning_coffee.png, audio/practice/preference_filler001b.mp3, audio/practice/preference_filler001a.mp3,A,1
+coffee_B,images/practice/morning_coffee.png, audio/practice/preference_filler001c.mp3, audio/practice/preference_filler001a.mp3,B,1
+coffee_C,images/practice/morning_coffee.png, audio/practice/preference_filler001a.mp3, audio/practice/preference_filler001b.mp3,C,1
