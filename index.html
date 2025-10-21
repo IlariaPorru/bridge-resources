@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BRIDGE Resources Index</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; background: #fafafa; }
+    h1 { color: #003366; }
+    a { color: #003366; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .folder { margin-bottom: 2rem; }
+    ul { list-style: none; padding-left: 1rem; }
+    li { margin: 0.25rem 0; }
+    code { background: #eee; padding: 0.1rem 0.3rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>🌉 BRIDGE Resource Repository</h1>
+  <p>This page lists public resources hosted for the BRIDGE Turkish bilingualism project.</p>
+  <p>Base URL: <code>https://ilariaporru.github.io/bridge-resources/</code></p>
+
+  <div id="folders"></div>
+
+  <script>
+  const folders = ["audio", "images", "csv"];
+  const owner = "IlariaPorru";
+  const repo = "bridge-resources";
+  const branch = "main"; // change if different
+
+  const container = document.getElementById("folders");
+
+  async function listFiles(folder) {
+    const api = `https://api.github.com/repos/${owner}/${repo}/contents/${folder}?ref=${branch}`;
+    const res = await fetch(api);
+    if (!res.ok) {
+      container.insertAdjacentHTML("beforeend", `<p>⚠️ Cannot fetch ${folder} (HTTP ${res.status})</p>`);
+      return;
+    }
+    const files = await res.json();
+    const list = files
+      .filter(f => f.type === "file")
+      .map(f => `<li><a href="${folder}/${f.name}" target="_blank">${f.name}</a></li>`)
+      .join("");
+    container.insertAdjacentHTML("beforeend", `
+      <div class="folder">
+        <h2>📁 ${folder}/</h2>
+        <ul>${list}</ul>
+      </div>
+    `);
+  }
+
+  folders.forEach(listFiles);
+  </script>
+</body>
+</html>
