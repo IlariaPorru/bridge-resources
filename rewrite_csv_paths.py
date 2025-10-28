@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import csv, sys, pathlib
+import csv, sys, pathlib, re
 
 ROOT = pathlib.Path(sys.argv[1]) if len(sys.argv) > 1 else pathlib.Path.cwd()
 CSV_DIR = ROOT / "csv"
@@ -11,23 +11,54 @@ CSV_FILES = [
     "interpret_practice.csv",
 ]
 
-# mapping rules
+AUDIO_TOP_IN  = "audio"
+AUDIO_TOP_OUT = "audio_opt"
+IMG_TOP_IN    = "images"
+IMG_TOP_OUT   = "images_opt"
+
+def is_url(p: str) -> bool:
+    return bool(re.match(r"^https?://", p or ""))
+
+def norm_slash(p: str) -> str:
+    return (p or "").strip().replace("\\", "/")
+
+def swap_topdir(p: pathlib.Path, in_top: str, out_top: str) -> pathlib.Path:
+    parts = p.parts
+    if not parts:
+        return p
+    if parts[0] == out_top:
+        # Already optimized; keep subpath
+        return p
+    if parts[0] == in_top:
+        return pathlib.Path(out_top).joinpath(*parts[1:])
+    # No top-level dir → place under out_top at same relative path/name
+    return pathlib.Path(out_top, *parts)
+
+def force_ext(p: pathlib.Path, ext: str) -> pathlib.Path:
+    # ext should include leading dot, e.g. ".mp3"
+    return p.with_suffix(ext)
+
 def map_audio(path: str) -> str:
-    path = path.strip()
-    if not path: return path
-    # drop any leading "audio/" and re-root under audio_opt/
-    name = pathlib.Path(path)
-    return str(pathlib.Path("audio_opt") / name.with_suffix(".mp3").name) if name.parent == pathlib.Path("") \
-        else str(pathlib.Path("audio_opt") / name.name if name.parent.name == "audio" else pathlib.Path("audio_opt") / name)
+    s = norm_slash(path)
+    if not s or is_url(s):
+        return s
+    p = pathlib.Path(s)
+    # move under audio_opt preserving subdirs
+    q = swap_topdir(p, AUDIO_TOP_IN, AUDIO_TOP_OUT)
+    # ensure .mp3 exactly once
+    q = force_ext(q, ".mp3")
+    return q.as_posix()
 
 def map_image(path: str) -> str:
-    path = path.strip()
-    if not path: return path
-    name = pathlib.Path(path)
-    # swap to images_opt and webp
-    new_name = name.with_suffix(".webp").name if name.suffix.lower() in [".png", ".jpg", ".jpeg"] else name.name
-    return str(pathlib.Path("images_opt") / new_name) if name.parent == pathlib.Path("") \
-        else str(pathlib.Path("images_opt") / name.name if name.parent.name == "images" else pathlib.Path("images_opt") / name)
+    s = norm_slash(path)
+    if not s or is_url(s):
+        return s
+    p = pathlib.Path(s)
+    # move under images_opt preserving subdirs
+    q = swap_topdir(p, IMG_TOP_IN, IMG_TOP_OUT)
+    # ensure .webp exactly once
+    q = force_ext(q, ".webp")
+    return q.as_posix()
 
 def rewrite_file(fn: str):
     src = CSV_DIR / fn
@@ -40,18 +71,22 @@ def rewrite_file(fn: str):
         writer = csv.DictWriter(g, fieldnames=reader.fieldnames)
         writer.writeheader()
         for row in reader:
-            # pairwise CSVs
-            for k in ["audio_A","audio_B"]:
-                if k in row: row[k] = map_audio(row[k])
-            if "image" in row: row["image"] = map_image(row["image"])
-            # interpretation CSVs
-            if "audio_filename" in row: row["audio_filename"] = map_audio(row["audio_filename"])
-            for k in ["M_picture","F_picture"]:
-                if k in row: row[k] = map_image(row[k])
+            # pairwise
+            for k in ("audio_A", "audio_B"):
+                if k in row:
+                    row[k] = map_audio(row[k])
+            if "image" in row:
+                row["image"] = map_image(row["image"])
+            # interpretation
+            if "audio_filename" in row:
+                row["audio_filename"] = map_audio(row["audio_filename"])
+            for k in ("M_picture", "F_picture"):
+                if k in row:
+                    row[k] = map_image(row[k])
             writer.writerow(row)
     print(f"[OK] {fn} -> {dst.name}")
 
-for fn in CSV_FILES:
-    rewrite_file(fn)
-
-print("Done. Use the *_opt.csv files in your PCIbex Template(getCSV(...)) or keep getCSV names and swap files on disk.")
+if __name__ == "__main__":
+    for fn in CSV_FILES:
+        rewrite_file(fn)
+    print("Done.")
