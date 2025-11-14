@@ -1,0 +1,3 @@
+1 - likert scale, audio e input 1-7
+2 - immagini, audio, click play e poi rispondono maschio o femmina
+3 - test proficiency, audio 
