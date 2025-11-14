@@ -29,7 +29,7 @@
 
   const container = document.getElementById("folders");
 
-  async function listFiles(folder) {
+async function listFiles(folder) {
     const api = `https://api.github.com/repos/${owner}/${repo}/contents/${folder}?ref=${branch}`;
     const res = await fetch(api);
     if (!res.ok) {
@@ -37,6 +37,7 @@
       return;
     }
     const files = await res.json();
+    console.log(files);
     const list = files
       .filter(f => f.type === "file")
       .map(f => `<li><a href="${folder}/${f.name}" target="_blank">${f.name}</a></li>`)
