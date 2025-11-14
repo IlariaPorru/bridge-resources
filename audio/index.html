@@ -17,47 +17,60 @@
 <body>
 
 <h1>🔊 BRIDGE Audio Files</h1>
-<p>This page lists all audio files hosted for the BRIDGE experiment.</p>
-<p>Base URL: <code>https://ilariaporru.github.io/bridge-resources/audio/</code></p>
+<p>This page lists audio files hosted for the BRIDGE experiment.</p>
+<p>Base URL: <code>https://ilariaporru.github.io/bridge-resources/</code></p>
 
 <div id="content"></div>
 
 <script>
-const owner = "IlariaPorru";
-const repo = "bridge-resources";
-const branch = "main";
-const folder = "audio";
+  const owner  = "IlariaPorru";
+  const repo   = "bridge-resources";
+  const branch = "main";
+  const rootFolder = "audio";
+  const basePath = "/bridge-resources/";   // for GitHub Pages links
 
-const container = document.getElementById("content");
+  const container = document.getElementById("content");
 
-async function listFolder(path) {
-  const api = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
-  const res = await fetch(api);
+  async function listFolder(path) {
+    const api = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+    const res = await fetch(api);
 
-  if (!res.ok) {
-    container.insertAdjacentHTML("beforeend", `<p>⚠️ Cannot fetch <code>${path}</code>: HTTP ${res.status}</p>`);
-    return;
+    if (!res.ok) {
+      container.insertAdjacentHTML(
+        "beforeend",
+        `<p>⚠️ Cannot fetch <code>${path}</code>: HTTP ${res.status}</p>`
+      );
+      return;
+    }
+
+    const items = await res.json();
+    const dirs  = items.filter(i => i.type === "dir");
+    const files = items.filter(i => i.type === "file");
+
+    // List files in this folder
+    const filesList = files.map(file => {
+      const url = `${basePath}${file.path}`; // e.g. /bridge-resources/audio/int_exp/...
+      return `<li>🎵 <a href="${url}" target="_blank">${file.name}</a></li>`;
+    }).join("");
+
+    container.insertAdjacentHTML(
+      "beforeend",
+      `
+      <div class="folder">
+        <h2>📁 ${path}/</h2>
+        ${files.length ? `<ul>${filesList}</ul>` : "<p><em>No files in this folder.</em></p>"}
+      </div>
+      `
+    );
+
+    // Recursively list subfolders
+    for (const dir of dirs) {
+      await listFolder(dir.path);
+    }
   }
 
-  const items = await res.json();
-  const files = items
-    .map(item => {
-      if (item.type === "dir") {
-        return `<li>📁 <a href="${item.path.replace(folder + "/", "")}/">${item.name}/</a></li>`;
-      } else {
-        return `<li>🎵 <a href="${item.name}" target="_blank">${item.name}</a></li>`;
-      }
-    })
-    .join("");
-
-  container.insertAdjacentHTML("beforeend", `
-    <h2>📁 ${path}/</h2>
-    <ul>${files}</ul>
-    <hr/>
-  `);
-}
-
-listFolder(folder);
+  // Start from audio/
+  listFolder(rootFolder);
 </script>
 
 </body>
