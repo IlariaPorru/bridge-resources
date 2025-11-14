@@ -39,7 +39,6 @@ async function listFiles(folder) {
     const files = await res.json();
     console.log(files);
     const list = files
-      .filter(f => f.type === "file")
       .map(f => `<li><a href="${folder}/${f.name}" target="_blank">${f.name}</a></li>`)
       .join("");
     container.insertAdjacentHTML("beforeend", `
