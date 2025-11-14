@@ -25,11 +25,12 @@
   const folders = ["audio", "images", "csv"];
   const owner = "IlariaPorru";
   const repo = "bridge-resources";
-  const branch = "main"; // change if different
+  const branch = "main";  
 
   const container = document.getElementById("folders");
 
   async function listFiles(folder) {
+    alert(folder);
     const api = `https://api.github.com/repos/${owner}/${repo}/contents/${folder}?ref=${branch}`;
     const res = await fetch(api);
     if (!res.ok) {
