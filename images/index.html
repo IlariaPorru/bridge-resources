@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BRIDGE Image Files</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; background: #fafafa; }
+    h1 { color: #003366; }
+    a { color: #003366; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .folder { margin-bottom: 2rem; }
+    ul { list-style: none; padding-left: 1rem; }
+    li { margin: 0.25rem 0; }
+    code { background: #eee; padding: 0.15rem 0.35rem; border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<h1>🖼 BRIDGE Image Files</h1>
+<p>This page lists image files hosted for the BRIDGE experiment.</p>
+<p>Base URL: <code>https://ilariaporru.github.io/bridge-resources/</code></p>
+
+<div id="content"></div>
+
+<script>
+  const owner  = "ilariaporru";      // username (case-insensitive)
+  const repo   = "bridge-resources";
+  const branch = "main";
+  const rootFolder = "images";       // top-level folder to list
+  const basePath = "/bridge-resources/"; // for GitHub Pages links
+
+  const container = document.getElementById("content");
+
+  async function listFolder(path) {
+    const api = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+    const res = await fetch(api);
+
+    if (!res.ok) {
+      container.insertAdjacentHTML(
+        "beforeend",
+        `<p>⚠️ Cannot fetch <code>${path}</code>: HTTP ${res.status}</p>`
+      );
+      return;
+    }
+
+    const items = await res.json();
+    const dirs  = items.filter(i => i.type === "dir");
+    const files = items.filter(i => i.type === "file");
+
+    // List files in this folder
+    const filesList = files.map(file => {
+      const url = `${basePath}${file.path}`; // e.g. /bridge-resources/images/int_exp/...
+      return `<li>🖼 <a href="${url}" target="_blank">${file.name}</a></li>`;
+    }).join("");
+
+    container.insertAdjacentHTML(
+      "beforeend",
+      `
+      <div class="folder">
+        <h2>📁 ${path}/</h2>
+        ${files.length ? `<ul>${filesList}</ul>` : "<p><em>No files in this folder.</em></p>"}
+      </div>
+      `
+    );
+
+    // Recursively list subfolders
+    for (const dir of dirs) {
+      await listFolder(dir.path);
+    }
+  }
+
+  // Start from images/
+  listFolder(rootFolder);
+</script>
+
+</body>
+</html>
